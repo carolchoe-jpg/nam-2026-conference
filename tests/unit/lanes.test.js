@@ -11,7 +11,11 @@ import { LANES } from '../helpers.js';
 // can race another such pane on the same attendee's attendance.
 test('no two lane panes share an attendee and day, unless one is read-only, they write different things, or both pin different slots', () => {
   const panes = Object.entries(LANES).flatMap(([name, lane]) =>
-    Object.entries(lane).map(([project, p]) => ({ at: `${name} (${project})`, ...p })));
+    Object.entries(lane).flatMap(([project, p]) => [
+      { at: `${name} (${project})`, ...p },
+      // a lane that books on a second day holds that pane too
+      ...(p.day2 !== undefined ? [{ at: `${name} (${project}, day2)`, ...p, day: p.day2, slot: p.slot2 }] : []),
+    ]));
   const clashes = [];
   for (let i = 0; i < panes.length; i++) {
     for (let j = i + 1; j < panes.length; j++) {
