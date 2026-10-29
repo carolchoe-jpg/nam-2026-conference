@@ -37,3 +37,20 @@ export const plural = (n, one, many = `${one}s`) => `${n.toLocaleString()} ${n =
 /** The schedule rail's "N sessions · M today"/"M on Day 1" line. `dayPhrase` is the caller's job. */
 export const agendaSummary = (total, bookedOnDay, dayPhrase) =>
   `${total === 1 ? 'session' : 'sessions'} · ${bookedOnDay} ${dayPhrase}`;
+
+/**
+ * What My Agenda shows: the fetched schedule re-filtered through the store's
+ * own reservation state (a removed session leaves at once), each session
+ * carrying the store's status, days in date order and sessions in start order.
+ */
+export const agendaDays = (days, reservationFor) =>
+  days
+    .map((d) => ({
+      ...d,
+      sessions: d.sessions
+        .filter((s) => reservationFor(s.id))
+        .map((s) => ({ ...s, reservation: reservationFor(s.id) }))
+        .sort((a, b) => a.startsAt.localeCompare(b.startsAt) || a.id - b.id),
+    }))
+    .filter((d) => d.sessions.length > 0)
+    .sort((a, b) => a.date.localeCompare(b.date));

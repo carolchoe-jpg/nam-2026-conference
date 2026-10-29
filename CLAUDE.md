@@ -10,7 +10,7 @@ The personal side of the app is left for workshop teams to build, so it is
 blank on purpose — build it when a ticket asks, never as a side effect of
 another change:
 
-- **My Agenda** (`/my-agenda`) is a *coming soon* placeholder.
+- **My Agenda** (`/my-agenda`) lists your sessions by day, but has no hour totals, clash warnings or calendar export yet.
 - **Home** is static: a hero, links into the app, the latest announcement and
   the sponsors. Nothing on it is about the signed-in attendee.
 - **Following** works on the speaker pages, but nothing shows what you follow
@@ -92,7 +92,7 @@ what this app does.
   `+Nh waitlisted`) rather than folded in or dropped. A waitlist place may never
   come good, so counting it as booked promises a fuller day than the room can give.
 - The page is **My Agenda** (`/my-agenda`), which is what Whova, Cvent, EventMobi
-  and AWS all call it. `/my-plan` redirects. It is a placeholder for now (above).
+  and AWS all call it. `/my-plan` redirects. It lists what you hold (above).
 - The store (`useConference()`: `toggleSeat`, `reservationFor`, `onAgenda`) is
   the source of truth for your own reservation state — never fall back to the
   payload a page was fetched with, or "removed" stays unreachable until a refresh.
