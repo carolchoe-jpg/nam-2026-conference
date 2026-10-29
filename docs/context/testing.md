@@ -103,7 +103,7 @@ instead of silently testing another worktree's app.
 
 `LANES` is **not exported**; it is the table inside `helpers.js` that `laneFor` reads.
 Entry shape: `'area.case': { desktop: { user, day, slot?, clean? }, mobile: {…} }`, with
-`day` a 0-based index. Its comment lists read-only fixtures and the rule that lanes with a
+`day` a 0-based index (a lane booking on a second day adds `day2` and `slot2`, which `lanes.test.js` counts as a pane of its own). Its comment lists read-only fixtures and the rule that lanes with a
 `slot` own their slot on day index 2 outright — they assert an exact seat count, so any other
 lane booking *a session in one of those slots* that day, even for a different attendee, can
 shift it mid-assertion. The slot is what is owned, not the attendee.

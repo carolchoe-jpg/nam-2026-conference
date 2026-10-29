@@ -1,6 +1,6 @@
 import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
-import { time, timeRange, dayLabel, shortDay, relativeDate, plural, agendaSummary } from '../../src/lib/format.js';
+import { time, timeRange, dayLabel, shortDay, relativeDate, plural, agendaSummary, agendaDays } from '../../src/lib/format.js';
 
 describe('Clock times read as people say them', () => {
   test('midnight and noon are twelve, not zero', () => {
@@ -118,5 +118,33 @@ describe('The schedule rail\'s agenda line pluralises on the total and names the
 
   test('a day other than the clock\'s is named instead of assumed to be today', () => {
     assert.equal(agendaSummary(3, 2, 'on Day 1'), 'sessions · 2 on Day 1');
+  });
+});
+
+describe('My Agenda lists what the store says you hold', () => {
+  const s = (id, startsAt) => ({ id, startsAt });
+  const days = [
+    { date: '2026-09-02', sessions: [s(5, '14:00'), s(4, '09:00')] },
+    { date: '2026-09-01', sessions: [s(1, '10:00'), s(2, '09:00')] },
+    { date: '2026-09-03', sessions: [s(6, '09:00')] },
+  ];
+
+  test('days come in date order and sessions in start order', () => {
+    const out = agendaDays(days, (id) => (id === 3 ? null : 'confirmed'));
+    assert.deepEqual(out.map((d) => d.date), ['2026-09-01', '2026-09-02', '2026-09-03']);
+    assert.deepEqual(out.map((d) => d.sessions.map((x) => x.id)), [[2, 1], [4, 5], [6]]);
+  });
+
+  test('a session the store no longer holds leaves, and so does a day left empty', () => {
+    const out = agendaDays(days, (id) => (id === 6 ? null : 'confirmed'));
+    assert.deepEqual(out.map((d) => d.date), ['2026-09-01', '2026-09-02']);
+    const gone = agendaDays(days, (id) => (id === 1 ? null : 'confirmed'));
+    assert.deepEqual(gone[0].sessions.map((x) => x.id), [2]);
+    assert.deepEqual(agendaDays(days, () => null), []);
+  });
+
+  test('the status shown is the store\'s, not the fetched payload\'s', () => {
+    const out = agendaDays([{ date: '2026-09-01', sessions: [{ id: 1, startsAt: '09:00', reservation: 'waitlisted' }] }], () => 'confirmed');
+    assert.equal(out[0].sessions[0].reservation, 'confirmed');
   });
 });

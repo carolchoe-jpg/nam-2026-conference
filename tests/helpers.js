@@ -117,6 +117,9 @@ export const LANES = {
   // attendee and day (a real seat lane, so it never sets its own slot
   // otherwise) — this test's own pick is dynamic and ignores them.
   'seats.queue':      { desktop: { user: marcus, day: 0, slot: '13:30' }, mobile: { user: abraham, day: 0, slot: '10:15' } },
+  // Two days each: `day` is clean for this attendee, `day2` is shared with seat lanes that pin
+  // other slots, so this one pins `slot2`. lanes.test.js counts both.
+  'agenda.list':      { desktop: { user: jonas, day: 1, clean: true, day2: 2, slot2: '13:30' }, mobile: { user: andy, day: 1, clean: true, day2: 2, slot2: '13:30' } },
   'conflict.ui':      { desktop: { user: kenji, day: 3, clean: true },    mobile: { user: andy, day: 3, clean: true } },
   'conflict.api':     { desktop: { user: abraham, day: 3 },                 mobile: { user: jonas, day: 3 } },
   'schedule.grid':    { desktop: { user: sofia, day: 1 },                 mobile: { user: marcus, day: 1 } },
