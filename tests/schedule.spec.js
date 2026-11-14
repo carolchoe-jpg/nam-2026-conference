@@ -232,4 +232,61 @@ test.describe('Ended sessions', () => {
     await expect(page).toHaveURL(/track=/);
     for (const l of ['Venue', 'Level', 'Format', 'Topic']) await expect(page.getByLabel(l)).toBeVisible();
   });
+  test('track pills multi-select: add, remove, All, deep link, list-only', async ({ page }) => {
+    const days = await conferenceDays();
+    const tracks = (await (await fetch(`${API}/bootstrap`)).json()).tracks;
+    const count = async (slugs) => {
+      const q = slugs.length ? `&trackSlug=${slugs.join(',')}` : '';
+      return (await (await fetch(`${API}/sessions?day=${days[1]}${q}`)).json()).length;
+    };
+    const [a, b] = tracks;
+    const label = (t) => t.shortName ?? t.name;
+    const pill = (t) => page.getByRole('button', { name: label(t), exact: true });
+    const shown = (n) => expect(page.getByTestId('result-count')).toHaveText(new RegExp(`^${n} sessions?$`));
+    const open = async () => {
+      const f = page.getByRole('button', { name: /^Filters/ });
+      if (await f.isVisible()) await f.click();
+    };
+
+    await visit(page, `/schedule?day=${days[1]}`, { at: await momentOn(0, MID_SESSION_TIME) });
+    await open();
+    await expect(pill(a)).toHaveAttribute('aria-pressed', 'false');
+
+    await pill(a).click();
+    await expect(pill(a)).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.getByTestId('view-grid')).toBeDisabled();
+    await expect(page.getByTestId('grid-blocked-notice')).toBeVisible();
+    await waitForResults(page);
+    await shown(await count([a.slug]));
+
+    await pill(b).click();
+    await expect(pill(b)).toHaveAttribute('aria-pressed', 'true');
+    await expect(pill(a)).toHaveAttribute('aria-pressed', 'true');
+    await expect(page).toHaveURL(new RegExp(`track=${a.slug}(,|%2C)${b.slug}`));
+    await expect(page.getByTestId('view-grid')).toBeDisabled();
+    await shown(await count([a.slug, b.slug]));
+    await shotForPR(page, 'two tracks selected');
+
+    await pill(a).click();
+    await expect(pill(a)).toHaveAttribute('aria-pressed', 'false');
+    await expect(page).toHaveURL(new RegExp(`track=${b.slug}(&|$)`));
+    await shown(await count([b.slug]));
+
+    await page.getByRole('button', { name: 'All', exact: true }).click();
+    await expect(page).not.toHaveURL(/track=/);
+    await expect(page.getByTestId('view-grid')).toBeEnabled();
+    await shown(await count([]));
+
+    await visit(page, `/schedule?day=${days[1]}&track=${a.slug},${b.slug}`);
+    await open();
+    await expect(pill(a)).toHaveAttribute('aria-pressed', 'true');
+    await expect(pill(b)).toHaveAttribute('aria-pressed', 'true');
+    await shown(await count([a.slug, b.slug]));
+
+    await visit(page, `/schedule?day=${days[1]}&track=${a.slug}`);
+    await open();
+    await expect(pill(a)).toHaveAttribute('aria-pressed', 'true');
+    await expect(pill(b)).toHaveAttribute('aria-pressed', 'false');
+    await shown(await count([a.slug]));
+  });
 });

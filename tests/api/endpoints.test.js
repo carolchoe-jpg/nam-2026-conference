@@ -123,6 +123,17 @@ describe('Every endpoint answers', () => {
     }
   });
 
+  test('trackSlug takes several comma-separated slugs and returns their union', async () => {
+    const [a, b] = (await api.json('/bootstrap')).tracks.map((t) => t.slug);
+    const idsOf = async (q) => (await api.json(`/sessions?${q}`)).map((s) => s.id).sort();
+    const onlyA = await idsOf(`trackSlug=${a}`);
+    const onlyB = await idsOf(`trackSlug=${b}`);
+    assert.ok(onlyA.length > 0 && onlyB.length > 0);
+    assert.deepEqual(await idsOf(`trackSlug=${a},${b}`), [...new Set([...onlyA, ...onlyB])].sort());
+    assert.deepEqual(await idsOf(`trackSlug=${a},,${a}`), onlyA, 'empty parts are ignored');
+    assert.deepEqual(await idsOf(`trackSlug=${a},nope`), onlyA, 'an unknown slug matches nothing extra');
+  });
+
   test('the health check reports ok and the session count', async () => {
     const res = await api.get('/health');
     assert.equal(res.status, 200, `GET /health → ${res.status}`);
